@@ -12,8 +12,16 @@ Parameters:
   apod_date = APOD date (format: YYYY-MM-DD)
 """
 from datetime import date
+import sqlite3
+import hashlib
 import os
+import re
+from pathlib import Path
+
 import image_lib
+import apod_api
+import sys
+
 
 # Full paths of the image cache folder and database
 # - The image cache directory is a subdirectory of the specified parent directory.
@@ -51,9 +59,29 @@ def get_apod_date():
     Returns:
         date: APOD date
     """
-    # TODO: Complete function body
-    # Hint: The following line of code shows how to convert and ISO-formatted date string to a date object
-    apod_date = date.fromisoformat('2022-12-25')
+    num_params = len(sys.argv) - 1
+    if num_params >= 1:
+        # Date parameter has been provided, so get it
+        try:
+            apod_date = date.fromisoformat(sys.argv[1])
+        except ValueError as err:
+            print(f'Error: Invalid date format; {err}')
+            sys.exit('Script execution aborted')
+
+        # Validate that the date is within range
+
+        MIN_APOD_DATE = date.fromisoformat("1995-06-16")  # Complete this
+        if apod_date < MIN_APOD_DATE:
+            
+            print('Error: Date too far in past; First APOD was on ', MIN_APOD_DATE.isoformat())
+            
+            sys.exit('Script execution aborted')
+        elif apod_date > date.today():
+            print('Error: APOD date cannot be in the future')
+            sys.exit('Script execution aborted')
+    else:
+        # No date parameter has been provided, so use today's date
+        apod_date = date.today()  # Fill in here
     return apod_date
 
 def init_apod_cache():
