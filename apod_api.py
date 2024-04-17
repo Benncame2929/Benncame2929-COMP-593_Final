@@ -10,8 +10,23 @@ import os
 import requests
 
 def main():
-    # TODO: Add code to test the functions in this module
+    import sys
+    num_params = len(sys.argv) - 1
+    # apod_date = date.fromisoformat(argv[1])
+
+    # import sys
+    # sys.argv
+
+    apod_info_dict = get_apod_info(apod_date)
+    if apod_info_dict:
+        apod_url = get_apod_image_url(apod_info_dict)
+
+        apod_image_data = image_lib.download_image(apod_url)
+
+        image_lib.save_image_file(apod_image_data, r'C:\temp\image.jpg')
+
     return
+
 
 def get_apod_info(apod_date):
     """Gets information from the NASA API for the Astronomy 
