@@ -89,9 +89,35 @@ def init_apod_cache():
     - Creating the image cache directory if it does not already exist,
     - Creating the image cache database if it does not already exist.
     """
-    # TODO: Create the image cache directory if it does not already exist
-    # TODO: Create the DB if it does not already exist
-    return
+    # Create the image cache directory if it does not already exist
+    # You should know what to do here as demonstrated in previous labs
+    print(f"Image cache directory: {image_cache_dir}")
+    try:
+        os.mkdir(image_cache_dir)  # made the image cache dir
+
+        print("Image cache directory created.")
+
+    except FileExistsError as err_info:
+
+        print("Image cache directory already exists.")
+
+    # Create the DB if it does not already exist
+    # Complete this with the correct instructions
+    print(f"Image cache DB: {image_cache_db}")
+    if os.path.exists(image_cache_db):  # check is image cache db path exists or not
+        print("Image cache DB already exists.")
+    else:
+        db_cxn = sqlite3.connect(image_cache_db)  # use sqlite3 connect method
+
+        db_cursor = db_cxn.cursor()
+
+        table_create_query = """
+                    CREATE TABLE IF NOT EXISTS image_data
+                    (id INTEGER PRIMARY KEY, title TEXT, explanation TEXT, file_path TEXT, sha256 TEXT);
+                    """
+        db_cursor.execute(table_create_query)
+        print("Image cache DB created.")
+
 
 def add_apod_to_cache(apod_date):
     """Adds the APOD image from a specified date to the image cache.
