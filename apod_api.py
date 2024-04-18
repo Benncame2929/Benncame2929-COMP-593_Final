@@ -1,32 +1,25 @@
 '''
 Library for interacting with NASA's Astronomy Picture of the Day API.
 '''
-import sys
-from pathlib import Path
-from datetime import date
 from sys import argv
-import image_lib
-import os
+from datetime import datetime
+import sys
 import requests
+import re
+import hashlib
+
 
 def main():
-    import sys
-    num_params = len(sys.argv) - 1
-    # apod_date = date.fromisoformat(argv[1])
 
-    # import sys
-    # sys.argv
-
+    apod_date = argv[1]
+    
     apod_info_dict = get_apod_info(apod_date)
-    if apod_info_dict:
-        apod_url = get_apod_image_url(apod_info_dict)
 
-        apod_image_data = image_lib.download_image(apod_url)
-
-        image_lib.save_image_file(apod_image_data, r'C:\temp\image.jpg')
+    apod_image_url = get_apod_image_url(apod_info_dict)
+    
+    print(apod_image_url)
 
     return
-
 
 def get_apod_info(apod_date):
     """Gets information from the NASA API for the Astronomy 
