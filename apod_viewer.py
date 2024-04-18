@@ -187,3 +187,210 @@ def display_image_and_explanation(image_path, image_info):
     
     return image_path
     
+def make_home_screen():
+
+    #Downloads the desired default image
+
+    image_data = image_lib.download_image(r'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwww.models-resource.com%2Fresources%2Fbig_icons%2F48%2F47830.png&f=1&nofb=1&ipt=4457110841d33186f65927ad4fd111c44c90daaa90154770bdc765b0edba9cf1&ipo=images')
+    
+    image_path = script_dir + '\minion_default.jpg'
+
+    image_lib.save_image_file(image_data, image_path)
+
+    #Displays selected image
+
+    img_to_display = Image.open(image_path)
+
+    img_to_display.thumbnail((window_width, window_height))
+
+    tk_image = ImageTk.PhotoImage(img_to_display)
+
+    global home_img_label
+
+    home_img_label = Label(image = tk_image)
+
+    home_img_label.image = tk_image
+
+    home_img_label.grid(column = 0, columnspan = 3, row = 1, padx = 10, pady = 10, sticky = "nsew")
+
+    widget_list.append(home_img_label)
+
+def dropdown_menu():
+    
+    #Gets all apod titles
+    
+    titles_list = apod_desktop.get_all_apod_titles()
+
+    #Creates a dropdown menu containing those titles
+
+    global dropdown_group
+
+    dropdown_group = LabelFrame(root, height = int(window_height / 10), text = "View Cached Image")
+    dropdown_group.grid(column = 0, row = 2, sticky = "nsew")
+
+    Label(dropdown_group, text = "Select an image from the database :").grid(column = 0, row = 0, sticky = "nsew")
+
+    n = StringVar()
+
+    global image_chosen
+
+    image_chosen = ttk.Combobox(dropdown_group, values = titles_list, width = 27, textvariable = n)
+
+    image_chosen.grid(column=1, row = 0, sticky = "nsew")
+
+    widget_list.append(image_chosen)
+
+    #def fetch_image():
+
+       # print(image_chosen.get())
+
+    global select_button
+
+    select_button = Button(dropdown_group, text = "Select this image", command=lambda: get_date_and_image_dropdown(image_chosen.get()))
+    select_button.grid(column = 2, row = 0, sticky = "nsew")
+
+    widget_list.append(select_button)
+
+def screen_reset():
+
+    for widget in root.winfo_children():
+        widget.destroy()
+    
+    create_calendar_button()
+
+    dropdown_menu()
+
+    create_desktop_button()
+
+def dynamic_resize():
+
+    #By giving the rows weight, they expand to fill available space
+    
+    for row_num in range(0, 2):
+        root.rowconfigure(row_num, weight = 1)
+        dropdown_group.rowconfigure(row_num, weight = 1)
+    
+    for column_num in range(0, 2):
+        root.columnconfigure(column_num, weight = 1)
+        dropdown_group.columnconfigure(column_num, weight = 1)
+
+def set_desktop_image(image_path):
+
+    image_lib.set_desktop_background_image(image_path)
+
+def create_desktop_button():
+
+    global desk_button
+
+    desk_button = Button(root, text = "Set the current image as your desktop background", command=lambda: set_desktop_image(root.image))
+    
+    desk_button.grid(column = 2, row = 2, sticky = "nsew")
+
+    widget_list.append(desk_button)
+
+def set_window_and_task_image():
+
+    #Saves the desired image
+    
+    image_data = image_lib.download_image(r'https://cdn-icons-png.flaticon.com/512/3306/3306571.png')
+
+    image_path = script_dir + '\window_default.jpg'
+
+    image_lib.save_image_file(image_data, image_path)
+
+    #turns the image into a .ico photoimage thingy and saves it
+
+    ico = Image.open(image_path)
+
+    ico.save(image_path, format='ICO')
+
+    #Sets the window icon
+
+    root.iconbitmap(False, image_path)
+
+    #I do not know how this works, but it uses the ctypes library to change the taskbar image.
+
+    window_handle = ctypes.windll.user32.GetParent(root.winfo_id())
+
+    ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("Tkinter_id")
+
+    ctypes.windll.user32.SetClassLongW(window_handle, -14, ctypes.windll.shell32.Shell_GetCachedImageIndexW(image_path, 0, 0x00000000))
+
+def when_resized(event):
+    for widget in root.winfo_children():
+        if hasattr(widget, "text"):
+            #Get row width and height
+            #iterate increased font size until correct size
+            #Differentiate between explanation label and all others?
+
+            
+            widget.config()
+        elif hasattr(widget, "image"):
+            #do thumbnail thing?
+            None
+        
+
+    None
+
+def resize(event):
+    window_height = root.winfo_height()
+    global font_size
+    window_width = root.winfo_width()
+    #try:
+    
+    for widget in widget_list:
+        
+        if widget == explanation_label:
+            
+            #gets height of explanation label cell
+            
+            #min_height = root.grid_bbox(0, 1)[3]
+            
+            min_height = window_height * 0.2
+
+                #Increases /decreases font size to fit the size of the cell that the text is in
+            
+            if widget.winfo_reqheight() > window_height / 20:
+                
+                if widget.winfo_reqheight() < min_height:
+                        
+                        while widget.winfo_reqheight() < min_height:
+                            time.sleep(1)
+                            font_size += 1
+                            print(font_size)
+                            
+                elif widget.winfo_reqheight() > min_height:
+                        
+                        while widget.winfo_reqheight() > min_height:
+                            font_size -= 1
+                widget.config(font=("Comic Sans MS", font_size))
+        else:
+            None    
+                
+    #except:
+        
+    
+    
+
+#select date from calendar --> translate date into proper format for apod_desktop functions
+# use apod_desktop functions to get that image, import title, description, file location to this script
+# display image w/ title and description.
+
+
+#displays default image + menu options
+
+make_home_screen()
+
+set_window_and_task_image()
+
+dropdown_menu()
+
+create_calendar_button()
+
+create_desktop_button()
+
+dynamic_resize()
+
+root.bind("<Configure>", resize)
+
+root.mainloop()
