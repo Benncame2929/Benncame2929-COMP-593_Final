@@ -21,7 +21,7 @@ def main():
 
     return
 
-def get_apod_info(apod_date):
+def get_apod_info(apod_date = datetime.today().strftime('%Y-%m-%d')):
     """Gets information from the NASA API for the Astronomy 
     Picture of the Day (APOD) from a specified date.
 
@@ -31,30 +31,62 @@ def get_apod_info(apod_date):
     Returns:
         dict: Dictionary of APOD info, if successful. None if unsuccessful
     """
-    # Setup request parameters 
-    apod_params = {
-        'api_key': NASA_API_KEY,
-        'date': apod_date,
-        'thumbs': True
-    }
+    #we have apod_date
+    #check if in yyyy-mm-dd
+    start_date = datetime.strptime("1995-06-16", "%Y-%m-%d")
+    today_date = datetime.now()
+    
+    if date_validate(apod_date):
+        
+                #check if not before 1995-06-16
+        #check if not in the future
+        #print descriptive error if invalid, and quit
+        
 
-    # Send GET request to NASA API
-    print(f'Getting {apod_date} APOD information from NASA...', end='')
-    resp_msg = requests.get(APOD_URL, params=apod_params)
+        if date_in_range(apod_date, start_date, today_date):
+            
 
-    # Check if the info was retrieved successfully
-    if resp_msg.status_code == requests.codes.ok:
+            my_key = 'DgriSg16XPnG7g7kLePDwFXFD8CZlQqbGMVZkYTS'
+            
+            apod_url = f"https://api.nasa.gov/planetary/apod?api_key={my_key}&date={apod_date}"
 
-        print('success')
-        # Convert the received info into a dictionary 
-        apod_info_dict = resp_msg.json()
-        return apod_info_dict
+            apod_response = requests.get(apod_url).json()
+                
+            return apod_response
+    else:
+        return None
+
+def date_validate(date):
+    '''
+    Ensures that a date is in YYYY-MM-DD format
+    '''
+    
+    try:
+        
+        if date != datetime.strptime(date, "%Y-%m-%d").strftime('%Y-%m-%d'):
+            
+            raise ValueError
+        
+        return True
+    
+    except ValueError:
+        
+        print("Incorrect date format, please use YYYY-MM-DD")
+        sys.exit()
+
+def date_in_range(date, start, end):
+    '''
+    ensures that a date is within the range specified
+    '''
+    
+    if start <= datetime.strptime(date, "%Y-%m-%d") <= end:
+        
+        return True
     
     else:
-        print('failure')
-
-        print(f'Response code: {resp_msg.status_code} ({resp_msg.reason})')
-
+        
+        print("Sorry, that date is outside of the accepted range. Please enter a date from 1995-06-16 to today, inclusive.")
+        sys.exit()
 
 def get_apod_image_url(apod_info_dict):
     """Gets the URL of the APOD image from the dictionary of APOD information.
@@ -63,69 +95,24 @@ def get_apod_image_url(apod_info_dict):
     If the APOD is a video, gets the URL of the video thumbnail.
 
     Args:
-        apod_info_dict (dict): Dictionary of APOD info
+        apod_info_dict (dict): Dictionary of APOD info from API
 
     Returns:
         str: APOD image URL
     """
     if apod_info_dict['media_type'] == 'image':
-
-        return apod_info_dict['hdurl']
+        
+        img_url = apod_info_dict['url']
         
     elif apod_info_dict['media_type'] == 'video':
-        # Some video APODs do not have thumbnails, so this will sometimes fail
-        return apod_info_dict['thumbnail_url']
 
-def get_apod_date():
-    """Gets the APOD date
+        youtube_url = apod_info_dict['url']
+        
+        youtube_id = re.search('embed\/(.*)\?', youtube_url)[1]
 
-    The APOD date is taken from the first command line parameter.
-    Validates that the command line parameter specifies a valid APOD date.
-    Prints an error message and exits script if the date is invalid.
-    Uses today's date if no date is provided on the command line.
-
-    Returns:
-        date: APOD date
-    """
-    num_params = len(sys.argv) - 1
-    if num_params >= 1:
-        # Date parameter has been provided, so get it
-        try:
-            apod_date = date.fromisoformat(sys.argv[1])
-            
-            print(f'{apod_date} apod_date')
-
-            
-
-
-
-        except ValueError as err:
-            print('Error: Invalid date format; ', err)
-
-            sys.exit('Script execution aborted')
-
-        # Validate that the date is within range
-
-        MIN_APOD_DATE = date.fromisoformat("1995-06-16")  # Complete this
-        print(MIN_APOD_DATE, "MIN_APOD_DATE")
-        if apod_date < MIN_APOD_DATE:
-
-            print('Error: Date too far in past; First APOD was on ,' ,MIN_APOD_DATE.isoformat())
-            
-
-            sys.exit("Script execution aborted")
-
-        elif apod_date > date.today():
-            print(f'Error: APOD date cannot be in the future')
-
-            sys.exit('Script execution aborted')
-    else:
-        # No date parameter has been provided, so use today's date
-        apod_date = date.today()  # Fill in here
-
-    return apod_date
-
-
+        img_url = f'http://img.youtube.com/vi/{youtube_id}/hqdefault.jpg'
+        
+    return img_url
 
 if __name__ == '__main__':
     main()
